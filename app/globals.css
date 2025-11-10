@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, :root {
+  height: 100%;
+  background: #F8F9FA;
+}
+
+/* Pretendard fallback */
+body {
+  font-family: 'Pretendard', 'Nanum Gothic', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+}
+
+/* BM JUA (배민 주아) */
+@font-face{
+  font-family:'BM JUA';
+  src:url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2307@1.1/BMJUA.woff2') format('woff2');
+  font-weight:700;
+  font-style:normal;
+  font-display:swap;
+}
+
+
