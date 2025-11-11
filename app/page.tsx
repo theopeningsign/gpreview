@@ -184,18 +184,30 @@ export default function Page() {
       const available = m.overlayHeight - reservedTop - reservedBottom
       const maxLines = Math.max(1, Math.floor(available / m.lineHeight))
       const pages = splitReviewIntoPagesPixel(options.review, { maxLinesPerImage: maxLines, maxWidthPx: maxWidth, font })
-      return { pages, m }
+      return { pages, m, maxLines }
     }
 
     const target = options.autoFitToPhotos ? Math.max(1, photos.length) : undefined
     if (!target) return choose(52)
 
-    // 큰 폰트부터 줄이면서 target 이내로 맞추기
-    for (let size = 68; size >= 18; size -= 2) {
-      const res = choose(size)
-      if (res.pages.length <= target) return res
+    let selected = choose(68)
+    if (selected.pages.length > target) {
+      for (let size = 66; size >= 18; size -= 2) {
+        const res = choose(size)
+        if (res.pages.length <= target) {
+          selected = res
+          break
+        }
+        selected = res
+      }
     }
-    return choose(18)
+    if (selected.pages.length < target) {
+      selected = {
+        ...selected,
+        pages: rebalancePagesToTarget(selected.pages, target, selected.maxLines),
+      }
+    }
+    return selected
   }, [options.review, options.fontFamily, options.autoFitToPhotos, photos.length])
 
   const reviewPages = computed.pages
@@ -451,6 +463,32 @@ async function fileToImage(file: File): Promise<HTMLImageElement> {
   } finally {
     // do not revoke yet; used by canvas draw lifecycle
   }
+}
+
+function rebalancePagesToTarget(pages: string[][], target: number, maxLines: number): string[][] {
+  if (target <= 0 || pages.length >= target) return pages
+  const flat = pages.flat()
+  if (flat.length === 0) {
+    return Array.from({ length: target }, () => [])
+  }
+  const total = flat.length
+  const result: string[][] = []
+  let cursor = 0
+  for (let slots = target; slots > 0; slots--) {
+    const remaining = total - cursor
+    if (remaining <= 0) {
+      result.push([])
+      continue
+    }
+    let take = Math.ceil(remaining / slots)
+    take = Math.max(1, Math.min(take, maxLines))
+    while (take > 1 && remaining - take < slots - 1) {
+      take--
+    }
+    result.push(flat.slice(cursor, cursor + take))
+    cursor += take
+  }
+  return result
 }
 
 
